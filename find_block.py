@@ -2,7 +2,7 @@ from datetime import datetime
 
 import numpy
 from amulet import Block
-from typing import TYPE_CHECKING, Tuple, Dict, Union
+from typing import TYPE_CHECKING, Tuple, Dict
 import wx
 
 from amulet_map_editor.api.wx.ui.base_select import EVT_PICK
