@@ -121,11 +121,10 @@ class FindBlock(wx.Panel, OperationUI):
                 palette_index = -1
 
                 # チャンクが保持するすべてのブロックから、検索対象のブロックがあるか確認
-                # この処理には問題があり、chunk.block_paletteはチャンクが保持するブロックを返却するのではなく
-                # ディメンションが保持するブロックを返却してしまう模様
                 for index, block in list(chunk.block_palette.items()):
                     if _check_block(block, original_base_name, original_properties):
                         palette_index = index
+                        break
 
                 # 検索対象のブロックがない場合、このチャンクの検索をスキップ
                 if palette_index == -1:
