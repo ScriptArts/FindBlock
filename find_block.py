@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 
 import numpy
@@ -91,6 +92,8 @@ class FindBlock(wx.Panel, OperationUI):
         count = 0
         find_block_matches = []
         now = datetime.now()
+        directory_name = "FindBlock"
+        filepath = directory_name + "/" + now.strftime("%Y%m%d%H%M%S") + ".txt"
         (
             find_platform,
             find_version,
@@ -151,13 +154,18 @@ class FindBlock(wx.Panel, OperationUI):
                 count += 1
                 yield count / size
 
+        os.makedirs(directory_name, exist_ok=True)
+
+        print("----------検索終了----------")
+        print("検索結果出力 -> " + filepath)
+
         # 結果をファイル出力
-        with open("FindBlock_" + now.strftime("%Y%m%d%H%M%S") + ".txt", "w") as f:
+        with open(filepath, "w") as f:
             f.write("x,y,z,dimension\n")
             for x, y, z, dimension in find_block_matches:
                 f.write(x + "," + y + "," + z + "," + dimension + "\n")
 
-        print("----------検索終了----------")
+
 
 
 export = {
