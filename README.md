@@ -11,4 +11,6 @@ AmuletEditorの`plugins/operations`に配置してください。
 
 3.検索が完了するまで待つ。
 
-4.検索が完了したら、AmuletEditorの実行ファイルと同じ階層のディレクトリに`FindBlock_YYYYMMDDHHMMSS.txt`の形式でテキストファイル(CSV形式)が出力されます。
+4.検索が完了したら、AmuletEditorの実行ファイルと同じ階層のディレクトリにFindBlockのディレクトリが作成されます。
+
+5.FindBlockディレクトリに`YYYYMMDDHHMMSS.txt`の形式でテキストファイル(CSV形式)が出力されます。
