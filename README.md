@@ -2,7 +2,7 @@
 Amulet Editor用のブロック検索プラグイン
 
 ## 配置場所
-AmuletEditorの`amulet_map_editor/programs/edit/plugins/stock_plugins/operations`に配置してください。
+AmuletEditorの`plugins/operations`に配置してください。
 
 ## 検索方法
 1.AmuletEditorを起動し、3DEditorのoperationsから`ブロック検索`を選択する。
