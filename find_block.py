@@ -166,8 +166,6 @@ class FindBlock(wx.Panel, OperationUI):
                 f.write(x + "," + y + "," + z + "," + dimension + "\n")
 
 
-
-
 export = {
     "name": "ブロック検索",  # the name of the plugin
     "operation": FindBlock,  # the actual function to call when running the plugin
