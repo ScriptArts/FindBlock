@@ -2,7 +2,7 @@ from datetime import datetime
 
 import numpy
 from amulet import Block
-from typing import TYPE_CHECKING, Tuple, Dict
+from typing import TYPE_CHECKING, Tuple, Dict, Union
 import wx
 
 from amulet_map_editor.api.wx.ui.base_select import EVT_PICK
@@ -92,12 +92,12 @@ class FindBlock(wx.Panel, OperationUI):
         find_block_matches = []
         now = datetime.now()
         (
-            original_platform,
-            original_version,
-            original_blockstate,
-            original_namespace,
-            original_base_name,
-            original_properties,
+            find_platform,
+            find_version,
+            find_blockstate,
+            find_namespace,
+            find_base_name,
+            find_properties,
         ) = (
             self._block_define.platform,
             self._block_define.version_number,
@@ -122,7 +122,9 @@ class FindBlock(wx.Panel, OperationUI):
 
                 # チャンクが保持するすべてのブロックから、検索対象のブロックがあるか確認
                 for index, block in list(chunk.block_palette.items()):
-                    if _check_block(block, original_base_name, original_properties):
+                    universal_block = world.translation_manager.get_version(
+                        find_platform, find_version).block.from_universal(block)[0]
+                    if _check_block(universal_block, find_base_name, find_properties):
                         palette_index = index
                         break
 
@@ -137,9 +139,11 @@ class FindBlock(wx.Panel, OperationUI):
                     for y in range(256):
                         for z in range(16):
                             block = chunk.get_block(x, y, z)
+                            universal_block = world.translation_manager.get_version(
+                                find_platform, find_version).block.from_universal(block)[0]
 
                             # 検索対象のブロックと一致するか確認
-                            if _check_block(block, original_base_name, original_properties):
+                            if _check_block(universal_block, find_base_name, find_properties):
                                 world_x = x + cx * 16
                                 world_z = z + cz * 16
                                 print("X:" + str(world_x) + " Y:" + str(y) + " Z:" + str(world_z) + " " + dimension)
