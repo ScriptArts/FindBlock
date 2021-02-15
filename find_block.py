@@ -2,9 +2,10 @@ import os
 from datetime import datetime
 
 import numpy
-from amulet import Block
+from amulet import Block, SelectionBox
 from typing import TYPE_CHECKING, Tuple, Dict
 import wx
+from amulet.api.partial_3d_array.base_partial_3d_array import BasePartial3DArray
 
 from amulet_map_editor.api.wx.ui.base_select import EVT_PICK
 from amulet_map_editor.api.wx.ui.block_select import BlockDefine
@@ -88,8 +89,10 @@ class FindBlock(wx.Panel, OperationUI):
 
     def _find_block(self):
         world = self.world
-        size = 0
+        chunk_count = 0
         count = 0
+        universal_block_count = 0
+        file_out_list = []
         find_block_matches = []
         now = datetime.now()
         directory_name = "FindBlock"
@@ -112,57 +115,60 @@ class FindBlock(wx.Panel, OperationUI):
 
         # 全てのディメンションのチャンク数を取得
         for dimension in world.dimensions:
-            size += len(list(world.all_chunk_coords(dimension)))
+            chunk_count += len(list(world.all_chunk_coords(dimension)))
 
         print("ブロック検索プラグイン実行")
-        print("総検索チャンク数:" + str(size))
+        print("総検索チャンク数:" + str(chunk_count))
         print("----------検索開始----------")
 
         for dimension in world.dimensions:
             for cx, cz in world.all_chunk_coords(dimension):
                 chunk = world.get_chunk(cx, cz, dimension)
-                palette_index = -1
 
-                # チャンクが保持するすべてのブロックから、検索対象のブロックがあるか確認
-                for index, block in list(chunk.block_palette.items()):
-                    universal_block = world.translation_manager.get_version(
-                        find_platform, find_version).block.from_universal(block)[0]
-                    if _check_block(universal_block, find_base_name, find_properties):
-                        palette_index = index
-                        break
+                # チャンクで使用されているブロックのパレットに、今までループしたチャンクのパレットにないブロックがある場合
+                if universal_block_count < len(chunk.block_palette):
+                    for universal_block_id in range(
+                            universal_block_count, len(chunk.block_palette)
+                    ):
+                        # ブロックを取得
+                        version_block = world.translation_manager.get_version(
+                            find_platform, find_version
+                        ).block.from_universal(
+                            world.block_palette[universal_block_id],
+                            force_blockstate=find_blockstate,
+                        )[
+                            0
+                        ]
 
-                # 検索対象のブロックがない場合、このチャンクの検索をスキップ
-                if palette_index == -1:
-                    count += 1
-                    yield count / size
-                    continue
+                        # ブロックが検索対象のブロックと一致する場合
+                        if _check_block(version_block, find_base_name, find_properties):
+                            find_block_matches.append(universal_block_id)
 
-                # チャンクの全ブロックを検索
-                for x in range(16):
-                    for y in range(256):
-                        for z in range(16):
-                            block = chunk.get_block(x, y, z)
-                            universal_block = world.translation_manager.get_version(
-                                find_platform, find_version).block.from_universal(block)[0]
+                    # パレットのブロック数を更新
+                    universal_block_count = len(chunk.block_palette)
 
-                            # 検索対象のブロックと一致するか確認
-                            if _check_block(universal_block, find_base_name, find_properties):
-                                world_x = x + cx * 16
-                                world_z = z + cz * 16
-                                print("X:" + str(world_x) + " Y:" + str(y) + " Z:" + str(world_z) + " " + dimension)
-                                find_block_matches.append((str(world_x), str(y), str(world_z), dimension))
+                # 検索対象のブロックと一致したブロックのチャンク座標を全て取得
+                chunk_pos_list = numpy.argwhere(numpy.isin(chunk.blocks, find_block_matches))
+                for chunk_pos in chunk_pos_list:
+                    x = chunk_pos[0] + cx * 16
+                    y = chunk_pos[1]
+                    z = chunk_pos[2] + cz * 16
+                    print("X:" + str(x) + " Y:" + str(y) + " Z:" + str(z) + " " + dimension)
+                    file_out_list.append((str(x), str(y), str(z), dimension))
+
                 count += 1
-                yield count / size
-
-        os.makedirs(directory_name, exist_ok=True)
+                yield count / chunk_count
 
         print("----------検索終了----------")
         print("検索結果出力 -> " + filepath)
 
+        # ディレクトリ生成
+        os.makedirs(directory_name, exist_ok=True)
+
         # 結果をファイル出力
         with open(filepath, "w") as f:
             f.write("x,y,z,dimension\n")
-            for x, y, z, dimension in find_block_matches:
+            for x, y, z, dimension in file_out_list:
                 f.write(x + "," + y + "," + z + "," + dimension + "\n")
 
 
