@@ -9,12 +9,12 @@ from amulet.api.partial_3d_array.base_partial_3d_array import BasePartial3DArray
 
 from amulet_map_editor.api.wx.ui.base_select import EVT_PICK
 from amulet_map_editor.api.wx.ui.block_select import BlockDefine
-from amulet_map_editor.programs.edit.plugins import OperationUI
-from amulet_map_editor.programs.edit.canvas.events import EVT_BOX_CLICK
+from amulet_map_editor.programs.edit.api.operations import OperationUI
+from amulet_map_editor.programs.edit.api.events import EVT_BOX_CLICK
 
 if TYPE_CHECKING:
     from amulet.api.level import World
-    from amulet_map_editor.programs.edit.canvas.edit_canvas import EditCanvas
+    from amulet_map_editor.programs.edit.api.canvas import EditCanvas
 
 
 def _check_block(block: Block, original_base_name: str,
@@ -39,7 +39,16 @@ class FindBlock(wx.Panel, OperationUI):
         self._sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self._sizer)
 
-        options = self._load_options({})
+        self._description = wx.TextCtrl(
+            self, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_BESTWRAP
+        )
+        self._sizer.Add(self._description, 0, wx.ALL | wx.EXPAND, 5)
+        self._description.SetLabel("指定したブロックの座標をワールドから全て検索します。\n" +
+                                   "検索した内容はFindBlockディレクトリにCSV形式で出力します。")
+        self._description.Fit()
+
+        self._block_define_label = wx.StaticText(self, wx.ID_ANY, "検索するブロック")
+        self._sizer.Add(self._block_define_label, 0, wx.LEFT | wx.RIGHT, 5)
 
         self._block_define = BlockDefine(
             self,
@@ -51,7 +60,7 @@ class FindBlock(wx.Panel, OperationUI):
         )
         self._block_click_registered = False
         self._block_define.Bind(EVT_PICK, self._on_pick_block_button)
-        self._sizer.Add(self._block_define, 1, wx.ALL | wx.ALIGN_CENTRE_HORIZONTAL, 5)
+        self._sizer.Add(self._block_define, 1, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTRE_HORIZONTAL, 5)
 
         self._run_button = wx.Button(self, label="検索開始")
         self._run_button.Bind(wx.EVT_BUTTON, self._run_operation)
