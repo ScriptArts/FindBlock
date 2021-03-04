@@ -1,5 +1,6 @@
 # FindBlock
-Amulet Editor用のブロック検索プラグイン
+Amulet Editor用プラグイン  
+ワールドの全ブロックから、指定したブロックの座標をすべて検索する
 
 ## 配置場所
 AmuletEditorの`plugins/operations`に配置してください。
