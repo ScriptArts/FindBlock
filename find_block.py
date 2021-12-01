@@ -9,11 +9,10 @@ from amulet.api.partial_3d_array.base_partial_3d_array import BasePartial3DArray
 
 from amulet_map_editor.api.wx.ui.base_select import EVT_PICK
 from amulet_map_editor.api.wx.ui.block_select import BlockDefine
-from amulet_map_editor.programs.edit.api.operations import OperationUI
-from amulet_map_editor.programs.edit.api.events import EVT_BOX_CLICK
+from amulet_map_editor.programs.edit.api.operations import DefaultOperationUI
 
 if TYPE_CHECKING:
-    from amulet.api.level import World
+    from amulet.api.level import BaseLevel
     from amulet_map_editor.programs.edit.api.canvas import EditCanvas
 
 
@@ -29,15 +28,18 @@ def _check_block(block: Block, original_base_name: str,
     return False
 
 
-class FindBlock(wx.Panel, OperationUI):
+class FindBlock(wx.Panel, DefaultOperationUI):
     def __init__(
-            self, parent: wx.Window, canvas: "EditCanvas", world: "World", options_path: str
+            self, parent: wx.Window, canvas: "EditCanvas", world: "BaseLevel", options_path: str
     ):
         wx.Panel.__init__(self, parent)
-        OperationUI.__init__(self, parent, canvas, world, options_path)
+        DefaultOperationUI.__init__(self, parent, canvas, world, options_path)
 
+        self.Freeze()
         self._sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self._sizer)
+
+        options = self._load_options({})
 
         self._description = wx.TextCtrl(
             self, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_BESTWRAP
@@ -54,11 +56,10 @@ class FindBlock(wx.Panel, OperationUI):
             self,
             world.translation_manager,
             wx.VERTICAL,
-            world.world_wrapper.platform,
+            [world.level_wrapper.platform],
             wildcard_properties=True,
             show_pick_block=True
         )
-        self._block_click_registered = False
         self._block_define.Bind(EVT_PICK, self._on_pick_block_button)
         self._sizer.Add(self._block_define, 1, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.ALIGN_CENTRE_HORIZONTAL, 5)
 
@@ -67,28 +68,16 @@ class FindBlock(wx.Panel, OperationUI):
         self._sizer.Add(self._run_button, 0, wx.ALL | wx.ALIGN_CENTRE_HORIZONTAL, 5)
 
         self.Layout()
+        self.Thaw()
 
     @property
     def wx_add_options(self) -> Tuple[int, ...]:
         return (1,)
 
     def _on_pick_block_button(self, evt):
-        """Set up listening for the block click"""
-        if not self._block_click_registered:
-            self.canvas.Bind(EVT_BOX_CLICK, self._on_pick_block)
-            self._block_click_registered = True
-        evt.Skip()
+        self._show_pointer = True
 
-    def _on_pick_block(self, evt):
-        self.canvas.Unbind(EVT_BOX_CLICK, handler=self._on_pick_block)
-        self._block_click_registered = False
-        x, y, z = self.canvas.cursor_location
-        self._block_define.universal_block = (
-            self.world.get_block(x, y, z, self.canvas.dimension),
-            None,
-        )
-
-    def unload(self):
+    def disable(self):
         print("Unload FindBlock")
 
     def _run_operation(self, _):
@@ -179,6 +168,8 @@ class FindBlock(wx.Panel, OperationUI):
             f.write("x,y,z,dimension\n")
             for x, y, z, dimension in file_out_list:
                 f.write(x + "," + y + "," + z + "," + dimension + "\n")
+
+        wx.MessageBox("検索が完了しました。\n出力先：" + filepath, "検索完了")
 
 
 export = {
