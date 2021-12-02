@@ -94,7 +94,7 @@ class FindBlock(wx.Panel, DefaultOperationUI):
         find_block_matches = []
         now = datetime.now()
         directory_name = "FindBlock"
-        filepath = directory_name + "/" + now.strftime("%Y%m%d%H%M%S") + ".txt"
+        filepath = directory_name + "/" + now.strftime("%Y%m%d%H%M%S") + ".csv"
         (
             find_platform,
             find_version,
