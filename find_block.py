@@ -154,6 +154,9 @@ class FindBlock(wx.Panel, DefaultOperationUI):
                     print("X:" + str(x) + " Y:" + str(y) + " Z:" + str(z) + " " + dimension)
                     file_out_list.append((str(x), str(y), str(z), dimension))
 
+                if count % 1000 == 0:
+                    world.unload_unchanged()
+
                 count += 1
                 yield count / chunk_count
 
